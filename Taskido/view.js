@@ -20,6 +20,7 @@ var timelineDates = [];
 var tid = (new Date()).getTime();
 var today = moment().format("YYYY-MM-DD");
 var dailyNoteRegEx = momentToRegex(dailyNoteFormat);
+var defaultTaskTag = "#task";
 
 // Set Root
 const rootNode = dv.el("div", "", {cls: "taskido "+options, attr: {id: "taskido"+tid}});
@@ -58,7 +59,8 @@ function getMeta(tasks) {
 		var filePath = tasks[i].link.path;
 		
 		// Inbox
-		if (inbox && inbox == filePath && tasks[i].completed == false && !taskText.match(/[🛫|⏳|📅|✅] *(\d{4}-\d{2}-\d{2})/)) {
+		// If task is in the inbox or contains the default task tag and is not completed and does not contain a date add it in the unplanned section		
+		if (((inbox && inbox == filePath) || (taskText && taskText.includes(defaultTaskTag))) && tasks[i].completed == false && !taskText.match(/[🛫|⏳|📅|✅] *(\d{4}-\d{2}-\d{2})/)) {
 			timelineDates.push(today);
 			happens["unplanned"] = today;
 			tasks[i].order = taskOrder.indexOf("unplanned");
@@ -253,7 +255,7 @@ function getMeta(tasks) {
 		if (globalTaskFilter) {
 			tasks[i].text = tasks[i].text.replaceAll(globalTaskFilter,"");
 		} else {
-			tasks[i].text = tasks[i].text.replaceAll("#task","");
+			tasks[i].text = tasks[i].text.replaceAll(defaultTaskTag,"");
 		};
 
 		// Link Detection
@@ -379,6 +381,7 @@ function setEvents() {
 		
 		// Icons
 		if (newTask.includes("due ")) { input.value = newTask.replace("due", "📅") };
+		if (newTask.includes("reminder ")) { input.value = newTask.replace("reminder", "⏰") };
 		if (newTask.includes("start ")) { input.value = newTask.replace("start", "🛫") };
 		if (newTask.includes("scheduled ")) { input.value = newTask.replace("scheduled", "⏳") };
 		if (newTask.includes("done ")) { input.value = newTask.replace("done", "✅") };
@@ -431,7 +434,8 @@ function setEvents() {
 
 function addNewTask(fileText, newTask) {
 	let newFileText;
-	const newTaskText = "- [ ] " + newTask;
+	const newTaskText = "- [ ] " + defaultTaskTag + " " + newTask;
+		
 	if (section != undefined) {
 		const lines = fileText.split("\n");
 		const index = lines.indexOf(section);
@@ -479,11 +483,13 @@ function completeTask(link, line, col) {
 				var cmLine = cmEditor.getLine(parseInt(line));
 				if (cmLine.includes("🔁")) {var addRange = 1} else {var addRange = 0};
 				cmEditor.setCursor(parseInt(line), parseInt(col));
-				app.commands.executeCommandById('obsidian-tasks-plugin:toggle-done');
+				// app.commands.executeCommandById('obsidian-tasks-plugin:toggle-done');
+				app.commands.executeCommandById('obsidian-reminder-plugin:toggle-checklist-status');
 				cmEditor.setSelection({line: parseInt(line) + addRange, ch: 6},{line: parseInt(line) + addRange, ch: parseInt(col) + 13});
+				// cmEditor.setSelection({line: parseInt(line), ch: 6},{line: parseInt(line), ch: parseInt(col)});
 				cmEditor.focus();
-			} catch(err) {
-				new Notice("Something went wrong!")
+			} catch(err) {				
+				new Notice(err.message)
 			};
 		};
 	});

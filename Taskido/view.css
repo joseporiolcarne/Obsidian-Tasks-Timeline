@@ -402,6 +402,7 @@
 .taskido.todoFocus .details.today .task.scheduled,
 .taskido.todoFocus .details.today .task.process,
 .taskido.todoFocus .details.today .task.start,
+.taskido.todoFocus .details.today .task.reminder,
 .taskido.overdueFocus .task.overdue,
 .taskido.unplannedFocus .task.unplanned { background: hsla(var(--interactive-accent-hsl), 0.2); }
 /* Filter */
